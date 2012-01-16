@@ -82,7 +82,7 @@ Test::Web - Tests is your website working
 
 =head1 SYNOPSIS
 
-  use Test::Most tests => 3;
+  use Test::Most tests => 4;
   use Test::Web ":all";
 
   host_ok( "purasi-bo.me" );
