@@ -1,16 +1,36 @@
 NAME
-    Test::Web -
+    Test::Web - Tests is your website working
 
 SYNOPSIS
-      use Test::Web;
+      use Test::Most tests => 3;
+      use Test::Web ":all";
+
+      host_ok( "purasi-bo.me" );
+      host_is( "purasi-bo.me", "182.163.86.132" );
+      head_ok( "http://purasi-bo.me/" );
+      get_ok( "http://purasi-bo.me/" );
 
 DESCRIPTION
-    Test::Web is
+    Test::Web tests allows you to test your website.
+
+    * Start small, this has too few methods to test my website, but will
+    improve.
+
+METHODS
+    host_ok( "purasi-bo.me", "Check DNS record" )
+        * dig can be use.
+
+    host_is( "purasi-bo.me", "182.163.86.132" )
+    head_ok( "http://purasi-bo.me/", "Send HEAD request" )
+    get_ok( "http://purasi-bo.me/", "Send GET request" )
 
 AUTHOR
     kuniyoshi <kuniyoshi@cpan.org>
 
 SEE ALSO
+    May many modules are exist, you can find more better modules. i am just
+    want to write.
+
 LICENSE
     This library is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself.
