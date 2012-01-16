@@ -1,8 +1,9 @@
 use inc::Module::Install;
 name 'Test-Web';
 all_from 'lib/Test/Web.pm';
+readme_from "lib/Test/Web.pm";
 
-# requires '';
+requires 'Test::Most';
 
 tests 't/*.t';
 author_tests 'xt';
