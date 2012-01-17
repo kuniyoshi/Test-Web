@@ -3,10 +3,10 @@ use strict;
 use warnings;
 use Exporter "import";
 use LWP::UserAgent;
+use Time::HiRes qw( tv_interval gettimeofday );
 use Test::Builder;
 
 our $VERSION = '0.01';
-
 our %EXPORT_TAGS = (
     dns => [ qw(
         host_ok  host_is
@@ -18,13 +18,15 @@ our %EXPORT_TAGS = (
 $EXPORT_TAGS{all} = [ map { @{ $_ } } values %EXPORT_TAGS ];
 our @EXPORT_OK    = @{ $EXPORT_TAGS{all} };
 our @EXPORT       = @{ $EXPORT_TAGS{http} };
+our $VERBOSE;
+our $ACCURACY = 2;
 #our %COMMAND      = (
 #    host => "host",
 #);
 our %RES;
 
 my $ua = LWP::UserAgent->new(
-    agent => __PACKAGE__,
+    agent => join q{/}, join( q{}, map { ucfirst } split m{::}, __PACKAGE__ ), $VERSION,
 );
 
 my $t = Test::Builder->new;
@@ -59,9 +61,16 @@ sub head_ok {
     my( $url, $name ) = @_;
     $name ||= "HEAD($url)";
 
+    my $start = [ gettimeofday ];
+
     $RES{ $$ } = $ua->head( $url );
 
-    return $t->ok( $RES{ $$ }->is_success, $name ) || $t->diag( "Could not HEAD($url): ", $RES{ $$ }->status_line );
+    if ( $VERBOSE ) {
+        $name = join q{; }, $name, sprintf "took: %.2f[s]", tv_interval( $start, [ gettimeofday ] );
+    }
+
+    return $t->ok( $RES{ $$ }->is_success, $name ) || $t->diag( "Could not HEAD($url): ", $RES{ $$ }->as_string );
+#    return $t->ok( $RES{ $$ }->is_success, $name ) || $t->diag( "Could not HEAD($url): ", $RES{ $$ }->status_line );
 }
 
 sub get_ok {
