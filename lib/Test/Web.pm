@@ -6,7 +6,7 @@ use LWP::UserAgent;
 use Time::HiRes qw( tv_interval gettimeofday );
 use Test::Builder;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 our %EXPORT_TAGS = (
     dns => [ qw(
         host_ok  host_is
@@ -18,8 +18,8 @@ our %EXPORT_TAGS = (
 $EXPORT_TAGS{all} = [ map { @{ $_ } } values %EXPORT_TAGS ];
 our @EXPORT_OK    = @{ $EXPORT_TAGS{all} };
 our @EXPORT       = @{ $EXPORT_TAGS{http} };
-our $VERBOSE;
-our $ACCURACY = 2;
+our $VERBOSE      = 1;
+our $ACCURACY     = 2;
 #our %COMMAND      = (
 #    host => "host",
 #);
@@ -57,29 +57,48 @@ $host = $host; # dirty too.
     return $t->is_eq( $got, $address, $name );
 }
 
+sub _make_indent {
+    my $string = shift;
+    $string =~ s{^ }{    }gmsx;
+    return $string;
+}
+
 sub head_ok {
     my( $url, $name ) = @_;
     $name ||= "HEAD($url)";
+    my $output_method = "status_line";
+    my $start;
 
-    my $start = [ gettimeofday ];
+    $start = [ gettimeofday ]
+        if $VERBOSE;
 
     $RES{ $$ } = $ua->head( $url );
 
     if ( $VERBOSE ) {
-        $name = join q{; }, $name, sprintf "took: %.2f[s]", tv_interval( $start, [ gettimeofday ] );
+        $name = join q{; }, $name, sprintf "took: %.${ACCURACY}f[s]", tv_interval( $start, [ gettimeofday ] );
+        $output_method = "as_string";
     }
 
-    return $t->ok( $RES{ $$ }->is_success, $name ) || $t->diag( "Could not HEAD($url): ", $RES{ $$ }->as_string );
-#    return $t->ok( $RES{ $$ }->is_success, $name ) || $t->diag( "Could not HEAD($url): ", $RES{ $$ }->status_line );
+    return $t->ok( $RES{ $$ }->is_success, $name ) || $t->diag( "Could not HEAD($url):\n", _make_indent( $RES{ $$ }->$output_method ) );
 }
 
 sub get_ok {
     my( $url, $name ) = @_;
     $name ||= "GET($url)";
+    my $output_method = "status_line";
+    my $start;
+
+    $start = [ gettimeofday ]
+        if $VERBOSE;
 
     $RES{ $$ } = $ua->get( $url );
 
-    return $t->ok( $RES{ $$ }->is_success, $name ) || $t->diag( "Could not GET($url): ", $RES{ $$ }->status_line );
+    if ( $VERBOSE ) {
+        $name = join q{; }, $name, sprintf "took: %.${ACCURACY}f[s]", tv_interval( $start, [ gettimeofday ] );
+        $output_method = "as_string";
+    }
+
+    return $t->ok( $RES{ $$ }->is_success, $name ) || $t->diag( "Could not GET($url):\n", _make_indent( $RES{ $$ }->$output_method ) );
 }
 
 1;
